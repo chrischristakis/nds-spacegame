@@ -7,4 +7,4 @@
 - Enjoy!
 
 ## Controls:
-- <code>KEY_TEST</code> RESULT TEST
+- <code>KEY_START</code> Reset game
