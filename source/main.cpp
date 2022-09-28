@@ -1,14 +1,19 @@
 #include <nds.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "sprite.h"
 #include "stars.h"
 #include "ship.h"
+#include "barrel.h"
 
 int frames = 0;
 
-void VBlank() {
-  frames++;
-}
+// --- TEMP --- //
+Sprite* s1 = nullptr;
+Sprite* s2 = nullptr;
+// ------------ //
+
+void VBlank() { frames++; }
 
 void initVideo() {
 
@@ -26,6 +31,17 @@ void initVideo() {
   vramSetBankB(VRAM_B_MAIN_SPRITE_0x06400000);
 }
 
+void initSprites() {
+  // Set up the OAM for use with a 32 byte boundary
+  oamInit(&oamMain, SpriteMapping_1D_32, false);
+
+  s1 = initSprite(SpriteSize_32x32, 0, 0, shipTiles, shipTilesLen,
+                          shipPal, shipPalLen);
+
+  s2 = initSprite(SpriteSize_32x32, 32, 0, barrelTiles, barrelTilesLen,
+                          barrelPal, barrelPalLen);
+}
+
 // Resets game state to the beginning.
 void reset() {
   resetStars();
@@ -35,46 +51,27 @@ int main() {
   irqSet(IRQ_VBLANK, VBlank);  // Call VBlank function on each VBlank (frame)
 
   initVideo();
+  initSprites();
   initStars();
 
-  oamInit(&oamMain, SpriteMapping_1D_128, false);
-  u16* gfx = oamAllocateGfx(&oamMain, SpriteSize_32x32, SpriteColorFormat_16Color);
-  dmaCopy(shipTiles, gfx, shipTilesLen);
-
-  const int COLORS_PER_PALETTE = 16;
-  const int shipId = 0;
-  dmaCopy(shipPal, &SPRITE_PALETTE[shipId * COLORS_PER_PALETTE], shipPalLen);
-
-  oamSet(&oamMain, //is it upper screen of bottom?
-  		shipId, // the oam entry to set
-  		0, 0, // where should be positioned (x,y)?
-  		0, // priority
-  		OBJPRIORITY_0, // palette for 16 color sprite or alpha for bmp sprite
-  		SpriteSize_32x32, // size
-  		SpriteColorFormat_16Color, // color type
-  		gfx, // the oam gfx
-  		0, //affine index
-  		false, //double the size of rotated sprites
-  		false, //don't hide the sprite
-  		false, false, //vflip, hflip
-  		false //apply mosaic
-  		);
-
   while(1) {
-    swiWaitForVBlank();
-    scanKeys();
+    swiWaitForVBlank();  // Wait until a VBlank to proceed
+    scanKeys();  // Update NDS input
 
-    // Handle key input
+    printf("\x1b[2J"); //Clear terminal
+    printf("\nFrame = %d\n", frames);
+    printf("S1 ID: %d\n", s1->id);
+    printf("S2 ID: %d\n", s2->id);
+
+    // Handle key input by checking bits against flgas (Like KEY_START)
     int keys = keysHeld();
     if(keys & KEY_START)
       reset();
 
-    printf("\x1b[2J"); //Clear terminal
-    printf("\nFrame = %d\n", frames);
-    printf("RAND_MAX: %d", RAND_MAX);
+    drawSprite(s1);
+    drawSprite(s2);
 
     updateStars();
-
     oamUpdate(&oamMain);
   }
 
