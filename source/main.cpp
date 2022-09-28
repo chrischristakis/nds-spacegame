@@ -5,12 +5,14 @@
 #include "stars.h"
 #include "ship.h"
 #include "barrel.h"
+#include "fracas.h"
 
 int frames = 0;
 
 // --- TEMP --- //
-Sprite* s1 = nullptr;
-Sprite* s2 = nullptr;
+Sprite *s1 = nullptr;
+Sprite *s2 = nullptr;
+Sprite *tl, *tr, *bl, *br;
 // ------------ //
 
 void VBlank() { frames++; }
@@ -40,6 +42,19 @@ void initSprites() {
 
   s2 = initSprite(SpriteSize_32x32, 32, 0, barrelTiles, barrelTilesLen,
                           barrelPal, barrelPalLen);
+
+  //FRACAS SEGMENTS (Its a 2048 len array, hence 2048/4 = 512)
+  tl = initSprite(SpriteSize_64x64, 64, 0, fracasTiles+512*0, fracasTilesLen/4,
+                          fracasPal, fracasPalLen);
+
+  tr = initSprite(SpriteSize_64x64, 128, 0, fracasTiles+512*1, fracasTilesLen/4,
+                          tl->id);
+
+  bl = initSprite(SpriteSize_64x64, 64, 64, fracasTiles+512*2, fracasTilesLen/4,
+                          tl->id);
+
+  br = initSprite(SpriteSize_64x64, 128, 64, fracasTiles+512*3, fracasTilesLen/4,
+                          tl->id);
 }
 
 // Resets game state to the beginning.
@@ -68,8 +83,15 @@ int main() {
     if(keys & KEY_START)
       reset();
 
+    s2->angle = frames * 100 % 32768;
+
     drawSprite(s1);
     drawSprite(s2);
+
+    drawSprite(tl);
+    drawSprite(tr);
+    drawSprite(bl);
+    drawSprite(br);
 
     updateStars();
     oamUpdate(&oamMain);

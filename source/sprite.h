@@ -4,6 +4,7 @@
 
 struct Sprite {
   int id;
+  int paletteId;
   int x;
   int y;
   int angle;
@@ -13,7 +14,11 @@ struct Sprite {
 };
 
 void drawSprite(Sprite* sprite);
+
 Sprite* initSprite(SpriteSize size, int x, int y, const unsigned int* tiles,
-int tilesLen, const unsigned short* palette, int paletteLen);
+  int tilesLen, const unsigned short* palette, int paletteLen);
+
+Sprite* initSprite(SpriteSize size, int x, int y, const unsigned int* tiles,
+  int tilesLen, int paletteId);
 
 #endif
