@@ -15,6 +15,8 @@ struct Sprite {
 
 void drawSprite(Sprite* sprite);
 
+Sprite* duplicate(Sprite* source, int x, int y);
+
 Sprite* initSprite(SpriteSize size, int x, int y, const unsigned int* tiles,
   int tilesLen, const unsigned short* palette, int paletteLen);
 

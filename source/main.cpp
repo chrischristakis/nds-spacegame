@@ -13,6 +13,7 @@ int frames = 0;
 Sprite *s1 = nullptr;
 Sprite *s2 = nullptr;
 Sprite *tl, *tr, *bl, *br;
+Sprite *s3 = nullptr;
 // ------------ //
 
 void VBlank() { frames++; }
@@ -55,6 +56,8 @@ void initSprites() {
 
   br = initSprite(SpriteSize_64x64, 128, 64, fracasTiles+512*3, fracasTilesLen/4,
                           tl->id);
+
+  s3 = duplicate(s2, 32, 32);
 }
 
 // Resets game state to the beginning.
@@ -77,16 +80,19 @@ int main() {
     printf("\nFrame = %d\n", frames);
     printf("S1 ID: %d\n", s1->id);
     printf("S2 ID: %d\n", s2->id);
+    printf("S3 ID: %d\n", s3->id);
 
     // Handle key input by checking bits against flgas (Like KEY_START)
     int keys = keysHeld();
     if(keys & KEY_START)
       reset();
 
-    s2->angle = frames * 100 % 32768;
+    s2->angle = frames *  100 % 32768;
+    s3->angle = frames * -100 % 32768;
 
     drawSprite(s1);
     drawSprite(s2);
+    drawSprite(s3);
 
     drawSprite(tl);
     drawSprite(tr);

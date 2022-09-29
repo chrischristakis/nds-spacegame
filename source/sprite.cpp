@@ -23,6 +23,24 @@ void drawSprite(Sprite* sprite) {
       );
 }
 
+// For when we just want to duplicate an existing sprite without allocating
+// More memory in vram, saves us space.
+Sprite* duplicate(Sprite* source, int x, int y) {
+  Sprite* sprite = new Sprite {};
+
+  // Since we have no pointers in our struct, we can shallow copy here with
+  // no issue.
+  memcpy(sprite, source, sizeof(*source));
+
+  // ... But we need to make the ID unique for oamSet to work. Otherwise we
+  // just overwrite the source sprite.
+  sprite->id = GLOBAL_ID++;
+  sprite->x = x;
+  sprite->y = y;
+
+  return sprite;
+}
+
 Sprite* initSprite(SpriteSize size, int x, int y, const unsigned int* tiles,
                 int tilesLen, const unsigned short* palette, int paletteLen) {
 
