@@ -4,10 +4,10 @@ static int GLOBAL_ID = 0;
 
 void drawSprite(Sprite* sprite) {
   // We're using sprite id as our rotation id because it's convenient
-  oamRotateScale(&oamMain, sprite->id, sprite->angle, intToFixed(1, 8),
-                 intToFixed(1, 8));
+  oamRotateScale(&oamMain, sprite->id, sprite->angle, (sprite->scale << 8),
+                 (sprite->scale << 8));
 
-  oamSet(&oamMain, //is it upper screen of bottom?
+  oamSet(&oamMain,
       sprite->id, // the oam entry to set
       sprite->x, sprite->y, // where should be positioned (x,y)?
       sprite->priority, // priority
@@ -28,12 +28,12 @@ void drawSprite(Sprite* sprite) {
 Sprite* duplicate(Sprite* source, int x, int y) {
   Sprite* sprite = new Sprite {};
 
-  // Since we have no pointers in our struct, we can shallow copy here with
-  // no issue.
+  // Shallow copy is ok since we actually want to keep the same location in
+  // memory for the sprite when duplicated.
   memcpy(sprite, source, sizeof(*source));
 
   // ... But we need to make the ID unique for oamSet to work. Otherwise we
-  // just overwrite the source sprite.
+  // just overwrite the source sprite when rednering
   sprite->id = GLOBAL_ID++;
   sprite->x = x;
   sprite->y = y;
@@ -44,7 +44,7 @@ Sprite* duplicate(Sprite* source, int x, int y) {
 Sprite* initSprite(SpriteSize size, int x, int y, const unsigned int* tiles,
                 int tilesLen, const unsigned short* palette, int paletteLen) {
 
-  Sprite* sprite = new Sprite{ GLOBAL_ID, GLOBAL_ID, x, y, 0, nullptr, size };
+  Sprite* sprite = new Sprite{ GLOBAL_ID, GLOBAL_ID, x, y, 0, nullptr, size, 1 };
   GLOBAL_ID++;
 
   u16* gfx = oamAllocateGfx(&oamMain, size, SpriteColorFormat_16Color);
@@ -64,7 +64,7 @@ Sprite* initSprite(SpriteSize size, int x, int y, const unsigned int* tiles,
 // need to make a new one.
 Sprite* initSprite(SpriteSize size, int x, int y, const unsigned int* tiles,
   int tilesLen, int paletteId) {
-  Sprite* sprite = new Sprite{ GLOBAL_ID++, paletteId, x, y, 0, nullptr, size };
+  Sprite* sprite = new Sprite{ GLOBAL_ID++, paletteId, x, y, 0, nullptr, size, 1 };
 
   u16* gfx = oamAllocateGfx(&oamMain, size, SpriteColorFormat_16Color);
   sprite->oamPtr = gfx;

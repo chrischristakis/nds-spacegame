@@ -10,7 +10,8 @@ struct Sprite {
   int angle;
   u16* oamPtr;
   SpriteSize size;
-  ObjPriority priority = OBJPRIORITY_0;
+  int scale;
+  ObjPriority priority = OBJPRIORITY_1;
 };
 
 void drawSprite(Sprite* sprite);

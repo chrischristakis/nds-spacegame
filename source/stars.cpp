@@ -20,6 +20,7 @@ void resetStars() {
 void initStars() {
   // Allocate memory for a background with a corresponding ID
   int bg = bgInit(2, BgType_Bmp16, BgSize_B16_256x256, 0, 0);
+  bgSetPriority(bg, 2);
   bgGfx = (u16*)bgGetGfxPtr(bg);  // Pointer to bg allocation
 
   // Set bg to solid colour

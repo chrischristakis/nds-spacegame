@@ -3,17 +3,15 @@
 #include <stdlib.h>
 #include "sprite.h"
 #include "stars.h"
-#include "ship.h"
-#include "barrel.h"
-#include "fracas.h"
+
+#include "player.h"
+#include "barrelmanager.h"
 
 int frames = 0;
 
 // --- TEMP --- //
-Sprite *s1 = nullptr;
-Sprite *s2 = nullptr;
+Player *player = nullptr;
 Sprite *tl, *tr, *bl, *br;
-Sprite *s3 = nullptr;
 // ------------ //
 
 void VBlank() { frames++; }
@@ -34,72 +32,45 @@ void initVideo() {
   vramSetBankB(VRAM_B_MAIN_SPRITE_0x06400000);
 }
 
-void initSprites() {
-  // Set up the OAM for use with a 32 byte boundary
-  oamInit(&oamMain, SpriteMapping_1D_32, false);
-
-  s1 = initSprite(SpriteSize_32x32, 0, 0, shipTiles, shipTilesLen,
-                          shipPal, shipPalLen);
-
-  s2 = initSprite(SpriteSize_32x32, 32, 0, barrelTiles, barrelTilesLen,
-                          barrelPal, barrelPalLen);
-
-  //FRACAS SEGMENTS (Its a 2048 len array, hence 2048/4 = 512)
-  tl = initSprite(SpriteSize_64x64, 64, 0, fracasTiles+512*0, fracasTilesLen/4,
-                          fracasPal, fracasPalLen);
-
-  tr = initSprite(SpriteSize_64x64, 128, 0, fracasTiles+512*1, fracasTilesLen/4,
-                          tl->id);
-
-  bl = initSprite(SpriteSize_64x64, 64, 64, fracasTiles+512*2, fracasTilesLen/4,
-                          tl->id);
-
-  br = initSprite(SpriteSize_64x64, 128, 64, fracasTiles+512*3, fracasTilesLen/4,
-                          tl->id);
-
-  s3 = duplicate(s2, 32, 32);
-}
-
 // Resets game state to the beginning.
 void reset() {
   resetStars();
+  player->reset();
+  resetBarrels();
 }
 
 int main() {
   irqSet(IRQ_VBLANK, VBlank);  // Call VBlank function on each VBlank (frame)
 
+  // Use a 1D mapping scheme in the OAM
+  oamInit(&oamMain, SpriteMapping_1D_32, false);
+
   initVideo();
-  initSprites();
   initStars();
+  initBarrels();
+
+  player = new Player {0, 32};
 
   while(1) {
     swiWaitForVBlank();  // Wait until a VBlank to proceed
     scanKeys();  // Update NDS input
 
     printf("\x1b[2J"); //Clear terminal
-    printf("\nFrame = %d\n", frames);
-    printf("S1 ID: %d\n", s1->id);
-    printf("S2 ID: %d\n", s2->id);
-    printf("S3 ID: %d\n", s3->id);
+    if(!(player->alive))
+      printf("\n\nYou died!! Press enter to restart.");
 
     // Handle key input by checking bits against flgas (Like KEY_START)
     int keys = keysHeld();
-    if(keys & KEY_START)
+    if(keys & KEY_START && !(player->alive))
       reset();
 
-    s2->angle = frames *  100 % 32768;
-    s3->angle = frames * -100 % 32768;
-
-    drawSprite(s1);
-    drawSprite(s2);
-    drawSprite(s3);
-
-    drawSprite(tl);
-    drawSprite(tr);
-    drawSprite(bl);
-    drawSprite(br);
-
+    player->update();
     updateStars();
+    updateBarrels(player);
+
+    player->draw();
+    drawBarrels();
+
     oamUpdate(&oamMain);
   }
 
