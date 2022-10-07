@@ -8,3 +8,5 @@
 
 ## Controls:
 - <code>KEY_START</code> Reset game
+- <code>KEY_UP</code> Move ship up
+- <code>KEY_DOWN</code> Move ship down
